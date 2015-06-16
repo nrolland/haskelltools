@@ -257,7 +257,8 @@ pour utiliser une librairie:
 
 **** Vue du probleme
 
-[[file:haskellpics/Screen Shot 2015-06-04 at 11.42.09 AM.png]]
+[[file:haskellpics/ScreenShot2015-06-04at11.42.09AM.pngScreenShot2015-06-04at11.42.09AM.png]]
+
 **** Diagnostic
 
 On voit l'expression concernee.
@@ -266,7 +267,8 @@ On voit 2 autres type expected et actual.
 
 Splices est probablement un synonyme de MapSyntaxM Text
 
-Je ne connais pas MapSyntaxM -> je recherche 
+Je ne connais pas MapSyntaxM -> je recherch
+e 
 
 
 
