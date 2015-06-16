@@ -1,0 +1,477 @@
+#+Title: A Haskell toolchain
+#+Author: Nicolas Rolland
+#+Email: nicolas.rolland@gmail.com
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:nil reveal_control:t
+#+OPTIONS: reveal_mathjax:t reveal_rolling_links:t reveal_keyboard:t reveal_overview:t num:nil
+
+* State of Haskell
+
+https://yow.eventer.com/events/1004/talks/1054
+
+
+
+* unix shell
+
+  - *zsh* : smart, has extensions
+  - [[https://github.com/skwp/dotfiles][yadr]] ready for action
+
+#+BEGIN_SRC sh
+ls -la ~/.zsh.after/
+#+END_SRC
+#+RESULTS:
+| total      | 56 |          |       |     |     |    |       |                       |
+| drwxr-xr-x | 10 | nrolland | staff | 340 | May | 31 | 15:41 | .                     |
+| drwxr-xr-x |  5 | nrolland | staff | 170 | May | 31 | 15:41 | ..                    |
+| -rw-r--r-- |  1 | nrolland | staff | 841 | Apr | 19 | 10:59 | alias.zsh             |
+| -rw-r--r-- |  1 | nrolland | staff |  76 | Apr | 19 | 10:59 | coq.zsh               |
+| -rw-r--r-- |  1 | nrolland | staff |  43 | May | 31 | 15:41 | haskellGlobal.old     |
+| -rw-r--r-- |  1 | nrolland | staff |  50 | Apr | 19 | 10:59 | locale.zsh            |
+| drwxr-xr-x | 28 | nrolland | staff | 952 | May | 31 | 16:20 | nix-zsh-completions   |
+| -rw-r--r-- |  1 | nrolland | staff | 751 | Jun |  7 | 18:29 | nix.zsh               |
+| -rw-r--r-- |  1 | nrolland | staff | 145 | May | 31 | 15:41 | nixzshCompletions.zsh |
+| -rw-r--r-- |  1 | nrolland | staff | 353 | Apr | 19 | 10:59 | prompt.zsh            |
+
+
+* Emacs
+  
+** Babel
+  
+   tractable config
+#+ATTR_REVEAL: :frag roll-in
+   
+   structured editing
+
+#+ATTR_REVEAL: :frag roll-in   
+   litterate [[https://github.com/nrolland/dotemacs/blob/master/emacs-init.org][my config]] for questions
+
+** Other
+   
+   - MELPA stable + melpa : modern package manager
+   - Cask and Pallet : for portability
+   - [[https://github.com/bbatsov/prelude][Emacs Prelude]] ?
+   - [[https://github.com/serras/emacs-haskell-tutorial/blob/master/tutorial.md][haskell with emacs]] 
+
+
+
+* Nix ?
+
+#+ATTR_REVEAL: :frag  (roll-in roll-in roll-in)  
+  - decent learning curve
+  - the mother of **EVERY** Apt-get/Bundler/SBT/cabal/Nuget/Brew/....
+  - ***guarantee*** of no petty installation problem
+
+
+** A new language 
+
+#+ATTR_REVEAL: :frag roll-in  
+   WHAT ??
+
+#+ATTR_REVEAL: :frag roll-in  
+   - manipulates sets of attributes
+   - entirely describes the state of your machine (benefits ?)
+#+ATTR_REVEAL: :frag roll-in  
+   - classical language : expression, function, etc.. 
+
+
+
+** References nix + haskell
+
+   - cabal2nix [[https://github.com/NixOS/cabal2nix/blob/master/doc/user-guide.md][user guide]]
+   - oliver charles [[https://ocharles.org.uk/nix-a-whirlwind-tour.pdf][overview]]
+   - peter simons [[https://www.reddit.com/r/haskell/comments/36vwac/peter_simons_nix_loves_haskell_talk_from_nixos/][video presentation]]
+   - [[https://nixos.org/nix/manual/][nix manual]] and [[http://lethalman.blogspot.fr/2014/07/nix-pill-1-why-you-should-give-it-try.html][nixpills]] for nix itself 
+  
+
+* Project worflows
+
+  #+ATTR_REVEAL: :frag (roll-in roll-in roll-in roll-in)
+   - A simple proof of concept program :    just edit the file, a module gets created for you
+   - A new cabal package : [[https://www.haskell.org/cabal/users-guide/developing-packages.html][cabal guide]] describe what to know. revisit option -Wall after 
+   - cabal can be mistaken to be package manager, build system, sandbox. 
+   - it is a build system although it tries to do other stuff.
+
+** Cabalology, Packages and all that
+  
+a package = a dll
+
+*** Kinds of package: Cabal vs GHC vs system
+-Cabal packages can be compiled to produce GHC packages.
+-ghc-pkg is used to register GHC packages and to get information on what packages are 
+ currently registered.
+-The Cabal package format is designed to allow Cabal packages to be translated, mostly-automatically,
+ into operating system packages.
+
+For cabal: 
+ the package ID only identifies each Cabal source package; the same Cabal source package can be 
+ configured and built in different ways. There is a separate installed package ID that uniquely 
+ identifies each installed package instance
+
+
+*** "Unit of distribution"
+
+
+The Cabal package is the unit of distribution... each Cabal package
+can be distributed on its own in source or binary form.. there may
+dependencies between packages, but there is usually a degree of 
+flexibility in which versions of packages can work together so
+distributing them independently makes sense.
+
+It is perhaps easiest to see what being ``the unit of distribution’’
+means by contrast to an alternative approach. 
+Many projects are made up of several interdependent packages and
+during development these might all be kept under one common 
+directory tree and be built and tested together. When it comes to
+distribution however, rather than distributing them all 
+together in a single tarball, it is required that they each be distributed independently in their own tarballs.
+Cabal’s approach is to say that if you can specify a dependency on a
+package then that package should be able to be 
+distributed independently. Or to put it the other way round, if you
+want to distribute it as a single unit, 
+then it should be a single package.
+
+Some manual work is required to transform a ./configure based package
+into a Linux distribution package (or similar). 
+The practical effect of this is that only the most popular packages
+will benefit from automatic package management. 
+Instead, Cabal forces the original author to specify the dependencies
+but the advantage is that every package 
+can benefit from automatic package management.
+
+
+
+..
+
+** Usage in GHC
+
+GHC only knows about packages that are installed. To see which packages are installed, use the 
+
+ghc-pkg list command:
+#+BEGIN_SRC sh
+ghc-pkg list | head
+#+END_SRC
+
+#+RESULTS:
+| /nix/store/w7rk2j11b7dnwncxvcn9w4myqnnfh1iq-ghc-7.8.4/lib/ghc-7.8.4/package.conf.d: |
+| Cabal-1.18.1.5                                                                      |
+| HTTP-4000.2.19                                                                      |
+| HUnit-1.2.5.2                                                                       |
+| HsOpenSSL-0.11.1.1                                                                  |
+| IfElse-0.85                                                                         |
+| JuicyPixels-3.2.4                                                                   |
+| MemoTrie-0.6.2                                                                      |
+| MissingH-1.3.0.1                                                                    |
+| MonadCatchIO-transformers-0.3.1.3                                                   |
+
+
+
+
+
+* Workflow with Nix
+
+  I add 3 files to the mix :
+
+#+ATTR_REVEAL: :frag (roll-in roll-in roll-in roll-in roll-in)
+  - default.nix : 
+         - allow other packages to refer it
+         - can override global config with this one 
+  - shell.nix : a shell w only this project dependencies
+  - global.nix : to replace my "global" profile ghc with one like this one
+
+#+BEGIN_SRC org
+ nix-env -i $(nix-instantiate ./global.nix) 
+ nix-build -E 'with import <nixpkgs> { }; ( import ./global.nix { })'
+ nix-build -E 'with import <nixpkgs> { }; pkgs.withHoogle ( import ./global.nix { })'
+#+END_SRC 
+ 
+** local version of a cabal package via nix
+
+cf [[https://github.com/NixOS/cabal2nix/blob/master/doc/user-guide.md][cabal2nix userguide]]
+
+
+#+BEGIN_SRC 
+
+#+END_SRC
+cabal get ghc-events-0.4.3.0 && cd ghc-events-0.4.3.0 && cabal2nix --no-check ghc-events.cabal > default.nix
+
+#+BEGIN_SRC 
+cat /Users/nrolland/.nixpkgs/haskell/ghc-events-0.4.3.0/default.nix
+#+END_SRC
+    
+
+* Language
+
+  
+** type
+#+BEGIN_SRC haskell 
+newtype CustomerId = CustomerId Int
+customerToInt :: CustomerId -> Int
+customerToInt (CustomerId i)  = i   //pattern match
+#+END_SRC
+
+** record
+
+#+BEGIN_SRC haskell 
+data Customer = MakeCustomer {
+            customerId :: CustomerId
+           , name :: String
+           , luckyNumer :: Int }
+
+alice :: Customer 
+alice = MakeCustomer { customerId = CustomerId 13
+                                       , name = “Alice”
+                                       , luckyNumber = 42 }
+
+sally = alice { name = “Sally”, luckyNumber = 84 }
+#+END_SRC
+
+** instanciating typeclass
+#+BEGIN_SRC haskell 
+instance Eq RGB where
+  (RGB r1 g1 b1) ==   (RGB r2 g2 b2) =
+        (r1 == r2) && .. 
+
+instance Show RGB where
+   show (RGB r g b) = “RGB ” ++ (show r) ++ …
+#+END_SRC
+
+** with type param
+#+BEGIN_SRC haskell 
+data Maybe’ a = Nothing’ | Just’ a
+
+instance (Eq a) => Eq (Maybe’ a) where
+Nothing” == Nothing’ = True
+Nothing’ == (Just’ _ ) = False 
+	…
+	Just’ a == Just’ b = a == b
+#+END_SRC
+
+** deriving
+#+BEGIN_SRC haskell 
+data RGB = RGB Int Int Int
+	deriving Eq, Ord, Show, Read
+#+END_SRC
+   
+** defining TypeClass
+
+#+BEGIN_SRC haskell 
+class Eq a where
+  (==) :: a -> a -> Bool
+  (/=) :: a -> a -> Bool
+  x /= = not(x ==y)    //default implementation
+  x == not (x /= y)
+
+
+data Point2 = Point2 Double Double
+data Point3 = Point3 Double Double Double
+
+pathLength (Measurable a) => [a] -> Double where
+pathLength [] = 0
+pathLength (_ : []) = 0
+pathLength (p0 : p1 : ps) = distance p0 p1 + pathLength (p1: ps)
+
+class Measurable a where
+  distance :: a -> a -> Double
+
+instance Measurable Point2 where
+  distance = distance2
+
+instance Measurable Point3 where
+  distance = distance3
+
+instance Measurable Double where
+  distance = abs (x - y)
+#+END_SRC
+
+  
+** subclass of type classes
+
+#+BEGIN_SRC haskell
+class (Measurable a, Show a) => Directions a where
+getDirections :: a -> a -> String
+getdirections p1 p2 = 
+	“Go from” ++ show p1 .. ++ “for “ ++ (show (distance p1 p2))
+
+instance Direction Points3 where 
+	getDirections = “Fly ” …...
+
+instance Direction Points2 where 
+	//nothing here
+#+END_SRC
+
+
+
+a completer avec [[file:haskellpics/CheatSheet.pdf][haskell cheat sheet]]
+
+
+** IO
+
+#+BEGIN_SRC haskell
+data Unit = Unit
+
+main :: IO()
+main = putStrLn “Hello”
+
+main :: IO()
+main = do
+ putStrLn “Hello”
+ putStrLn “World”
+#+END_SRC
+
+** monadic bind
+#+BEGIN_SRC haskell
+main :: IO()
+main = do
+	who <- getLine
+	putStrLn (“Hello ” ++ who)
+#+END_SRC
+
+
+
+
+** module import
+#+BEGIN_SRC haskell
+import Data.Set     //defines empty
+import qualified Data.Sequence  as Seq  //defines Sequence.empty
+import Data.Set (empty, size)  //good style
+
+import Data.Maybe (Maybe, (Just,Nothing)) //constructors optional
+import Data.Maybe (Maybe  (..)) //all constructors
+
+#+END_SRC
+** import for type classes
+#+BEGIN_SRC haskell
+import Control.Monad (Monad, return)
+#+END_SRC
+
+** hiding
+#+BEGIN_SRC haskell
+import Prelude hiding (map) // can override map 
+#+END_SRC
+
+** creating module - in MyModule.hs
+#+BEGIN_SRC haskell
+module MyModule where
+module MyModule(myFunction, MyType, MyType2(Constructor1) ) where
+
+module Foo.Bar.Baz (module MyModule) where 
+	import MyModule
+#+END_SRC
+
+** infix operator 
+#+BEGIN_SRC haskell
+x `leq` y = x <= y
+#+END_SRC
+
+definition : x `leq` y = leq x y : on pousse le nom de l’operateur apres le premier argument
+
+(leq 10) 20 = True      //classique on close sur le premier argument
+(`leq` 10) 20 = False  //le premier argument de `leq` est le deuxieme argument de leq 
+
+
+
+http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program#Structure_of_a_simple_project
+
+
+
+* Navigating the code and docs
+
+*** Some tools
+- haskell-mode
+- ghc-mod
+- hoogle
+- .ghci
+
+
+
+*** ghc-mod and :info 
+[[./haskellpics/Snap__A_Haskell_Web_Framework__Snaplets_Tutorial_and__Users_nrolland_hask_snapexampple_src_Tutorial_lhs_and_8____hask_snapexampple__ghc-modi__and_localhost_8000_company.png]]
+
+
+*** ghc-mod and hoogle
+
+[[file:haskellpics/_Users_nrolland_hask_memoise_src_Main_hs.png]]
+
+
+
+
+*** pb with popup doc 
+[[file:haskellpics/_Users_nrolland_hask_memoise_src_Main_hs2.png]]
+
+
+*** company ghc
+
+[[file:haskellpics/_Users_nrolland_hask_memoise_src_Main_hs_and__Users_nrolland_notes_haskelltools_org.png]]
+
+
+
+*** browse documentation with M-x ghc-browse-document  or  M-C-d
+
+[[file:haskellpics/_Minibuf-1__and_Snap_Snaplet_PostgresqlSimple_and__Users_nrolland_notes_haskelltools_org_and_emacs_browse_documentation_not_working__ghc-doc_el___·_Issue__350_·_kazu-yamamoto_ghc-mod_and_15_____emacs_d__zsh_.png]]
+
+
+*** dash-haskell
+
+https://github.com/jfeltz/dash-haskell
+
+
+[[file:haskellpics/_Minibuf-1__and__Users_nrolland_notes_haskelltools_org_and_10____hask_memoise__zsh_.png]]
+
+
+
+*** D'ou vient l'info ?
+
+pour utiliser une librairie:
+ - de emacs (haskell-mode sous curseur, ghc-mod C-c C-t, :info sur valeur et sur type )
+ - de [[https://hackage.haskell.org/package/snap-core-0.9.7.0/docs/Snap-Internal-Http-Types.html][hackage]] une fois que l'on connait la librairie
+ - de  hoogle :d (ou C-C C-d + chance.. ) si l'on ne connait pas la librairie
+ - de ghc-browse-doc pour aller sur la bonne page
+
+
+
+*** Messages GHC - type debugging
+
+**** Vue du probleme
+
+[[file:haskellpics/Screen Shot 2015-06-04 at 11.42.09 AM.png]]
+**** Diagnostic
+
+On voit l'expression concernee.
+On voit les 2 types qui ne peuvent etre unifies en haut.
+On voit 2 autres type expected et actual.
+
+Splices est probablement un synonyme de MapSyntaxM Text
+
+Je ne connais pas MapSyntaxM -> je recherche 
+
+
+
+
+
+
+
+
+
+
+
+
+
+* Unfinished
+**  Quickcheck
+
+:m +Test.QuickCheck
+:l src/Cis194/Hw/Week1.hs 
+
+-- define a fx that generates data
+let negInts = choose(-10000000, -1)
+
+-- define a Property that runs function and asserts something about result
+let toDigitsEmpty x = (toDigits x) == []
+
+-- run QuickCheck to validate property
+quickCheck (forAll negInts toDigitsEmpty)
+https://www.fpcomplete.com/user/pbv/an-introduction-to-quickcheck-testing
+
+
+Le printf debg de haskell :
+[[http://hackage.haskell.org/package/base-4.8.0.0/docs/Debug-Trace.html][debug trace]]
+
